@@ -55,6 +55,7 @@ async def auto_eval_by_gpt4o(
             "image_url": {"url": f"data:image/png;base64,{screenshot}"},
         }
         for screenshot in screenshots
+        if screenshot is not None
     ]
 
     # Prepare GPT-4V messages
