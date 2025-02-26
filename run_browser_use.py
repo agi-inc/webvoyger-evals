@@ -16,7 +16,7 @@ from browser_use.browser.context import BrowserContextConfig
 from dotenv import load_dotenv
 from langchain_anthropic import ChatAnthropic
 from langchain_google_genai import ChatGoogleGenerativeAI
-from langchain_openai import AzureChatOpenAI
+from langchain_openai import AzureChatOpenAI, ChatOpenAI
 from pydantic import BaseModel, Field, SecretStr
 
 from evaluation.auto_eval_browser_use import auto_eval_by_gpt4o
@@ -174,6 +174,12 @@ def get_llm_model_generator(
                 stop=None,
                 temperature=0.0,
             )
+        elif model_provider == "openai":
+            llm = ChatOpenAI(
+                model="gpt-4o",
+                api_key=SecretStr(os.getenv("OPENAI_API_KEY", "")),
+            )
+            yield llm
 
         elif model_provider == "azure":
             # Create fresh instances each time, reading current env vars
@@ -239,7 +245,7 @@ def get_llm_model_generator(
 
 async def process_single_task(
     task: TaskData,
-    client: AzureChatOpenAI | ChatAnthropic,
+    client: ChatOpenAI| AzureChatOpenAI | ChatAnthropic,
     stats: RunStats,
     results_dir: Path,
     experiment_results: ExperimentResults,
@@ -318,7 +324,7 @@ async def main(max_concurrent_tasks: int, model_provider: str) -> None:
 
         # Load tasks
         tasks: List[TaskData] = []
-        with open("data/WebVoyager_data.jsonl", "r") as f:
+        with open("data/small_task.jsonl", "r") as f:
             for line in f:
                 tasks.append(json.loads(line))
 
@@ -340,7 +346,7 @@ async def main(max_concurrent_tasks: int, model_provider: str) -> None:
 
         # Process tasks concurrently with semaphore
         async def process_with_semaphore(
-            task: TaskData, client: AzureChatOpenAI | ChatAnthropic
+            task: TaskData, client: AzureChatOpenAI | ChatAnthropic | ChatOpenAI
         ) -> None:
             async with semaphore:
                 print(f"\n=== Now at task {task['id']} ===")
@@ -421,6 +427,7 @@ if __name__ == "__main__":
             help="Model provider (default: azure)",
             choices=[
                 "azure",
+                "openai",
                 "anthropic",
                 "google/gemini-1.5-flash",
                 "google/gemini-1.5-flash-8b",

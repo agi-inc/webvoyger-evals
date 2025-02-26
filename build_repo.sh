@@ -6,13 +6,13 @@
 # rm -rf browser-use
 
 # Simple test script for browser-use Gemini branch
-git clone https://github.com/browser-use/browser-use.git
+git clone git@github.com:agi-inc/browser-use.git
 cd browser-use
 # git checkout models/gemini
 # git checkout hot-fix/default-not-permitted
 # checkout 1a5a4bd557a190dbc6a77985c46db383779ae4bf
 echo "Checking out branch"
-git checkout memory-state-extraction
+git checkout MultionDOMParser
 
 
 # Setup environment and build
